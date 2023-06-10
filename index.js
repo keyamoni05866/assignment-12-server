@@ -32,6 +32,7 @@ async function run() {
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
     // collections
     const usersCollection = client.db("TuneCamp").collection("users");
+    const classesCollection = client.db("TuneCamp").collection("classes");
 
 
 
@@ -54,6 +55,7 @@ async function run() {
     })
 
     // user patch operation
+    // admin
     app.patch('/users/admin/:id', async(req, res) =>{
       const id = req.params.id;
       const filter = {_id: new ObjectId(id)}
@@ -65,6 +67,7 @@ async function run() {
       const result = await usersCollection.updateOne(filter, updateDoc)
       res.send(result);
     } )
+    // instructor
     app.patch('/users/instructor/:id', async(req, res) =>{
       const id = req.params.id;
       const filter = {_id: new ObjectId(id)}
@@ -77,7 +80,13 @@ async function run() {
       res.send(result);
     } )
 
-
+    // Add Classes related apis
+     app.post('/addClasses', async(req, res) =>{
+         const classes = req.body;
+         const result = await classesCollection.insertOne(classes);
+         res.send(result) 
+     })
+    
 
   } finally {
     // Ensures that the client will close when you finish/error
