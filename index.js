@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 5000;
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 
 // middleware
@@ -39,10 +39,43 @@ async function run() {
     // user post operations
     app.post('/users', async(req, res) =>{
         const user = req.body;
+        const query = {email: user.email};
+        const existingUser = await usersCollection.findOne(query);
+        if(existingUser){
+          return res.send({message: 'user already exist'})
+        }
         const result =await usersCollection.insertOne(user);
         res.send(result);
     })
+    // user get 
+    app.get('/users', async(req, res) =>{
+      const result = await usersCollection.find().toArray();
+      res.send(result);
+    })
 
+    // user patch operation
+    app.patch('/users/admin/:id', async(req, res) =>{
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)}
+      const updateDoc ={
+        $set:{
+          role: 'admin'
+        },
+      };
+      const result = await usersCollection.updateOne(filter, updateDoc)
+      res.send(result);
+    } )
+    app.patch('/users/instructor/:id', async(req, res) =>{
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)}
+      const updateDoc ={
+        $set:{
+          role: 'instructor'
+        },
+      };
+      const result = await usersCollection.updateOne(filter, updateDoc)
+      res.send(result);
+    } )
 
 
 
