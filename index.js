@@ -54,6 +54,15 @@ async function run() {
       res.send(result);
     })
 
+     app.get('/users/instructor', async(req, res) =>{
+      const query = { role: 'instructor' };
+      const cursor = usersCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result)
+     })
+
+
+
     // user patch operation
     // admin
     app.patch('/users/admin/:id', async(req, res) =>{
