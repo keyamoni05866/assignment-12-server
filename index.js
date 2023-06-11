@@ -54,6 +54,7 @@ async function run() {
       res.send(result);
     })
 
+    // instructors apis
      app.get('/users/instructor', async(req, res) =>{
       const query = { role: 'instructor' };
       const cursor = usersCollection.find(query);
@@ -95,6 +96,26 @@ async function run() {
          const result = await classesCollection.insertOne(classes);
          res.send(result) 
      })
+    //  get classes apis
+    app.get('/addClasses', async(req, res) =>{
+      const result = await classesCollection.find().toArray();
+      res.send(result);
+    })
+
+    // classes approved operations
+    app.patch('/addClasses/:id', async(req, res) =>{
+      const id = req.params.id;
+      console.log(id)
+      const filter = {_id: new ObjectId(id)}
+      
+      const updateDoc={
+        $set:{
+          status: 'approved'
+        },
+      };
+      const result = await classesCollection.updateOne(filter, updateDoc);
+      res.send(result)
+    })
     
 
   } finally {
