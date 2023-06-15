@@ -205,9 +205,13 @@ async function run() {
     });
     app.post('/payments', async(req, res)=>{
       const payment = req.body;
-      const result = await paymentCollection.insertOne(payment);
+      const result= await paymentCollection.insertOne(payment);
       res.send(result)
 
+    })
+    app.get('/payments', async(req, res)=>{
+      const result = await paymentCollection.find().toArray();
+      res.send(result);
     })
 
 
