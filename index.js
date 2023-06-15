@@ -5,12 +5,11 @@ const app = express();
 const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
-const stripe = require('stripe')(process.env.PAYMENT_SECRET_KEY)
+const stripe = require("stripe")(process.env.PAYMENT_SECRET_KEY);
 
 // middleware
 app.use(cors());
 app.use(express.json());
-
 
 // mongodb related operations start from here
 
@@ -37,9 +36,8 @@ async function run() {
     // collections
     const usersCollection = client.db("TuneCamp").collection("users");
     const classesCollection = client.db("TuneCamp").collection("classes");
-    const selectClassesCollection = client
-      .db("TuneCamp")
-      .collection("selectClasses");
+    const selectClassesCollection = client.db("TuneCamp").collection("selectClasses");
+    const paymentCollection = client.db("TuneCamp").collection("paymentClasses");
 
     //  jwt post
     app.post("/jwt", (req, res) => {
@@ -81,20 +79,20 @@ async function run() {
       const result = await usersCollection.find(query).limit(6).toArray();
       res.send(result);
     });
-    app.get('/users/admin/:email',  async(req, res)=>{
+    app.get("/users/admin/:email", async (req, res) => {
       const email = req.params.email;
-      const query = {email };
+      const query = { email };
       // console.log(email)
       const user = await usersCollection.findOne(query);
       res.send(user);
-     })
-    app.get('/users/instructor/:email',  async(req, res)=>{
+    });
+    app.get("/users/instructor/:email", async (req, res) => {
       const email = req.params.email;
-      const query = {email };
+      const query = { email };
       // console.log(email)
       const user = await usersCollection.findOne(query);
       res.send(user);
-     })
+    });
 
     app.patch("/users/admin/:id", async (req, res) => {
       const id = req.params.id;
@@ -114,6 +112,7 @@ async function run() {
       const updateDoc = {
         $set: {
           role: "instructor",
+          
         },
       };
       const result = await usersCollection.updateOne(filter, updateDoc);
@@ -157,16 +156,13 @@ async function run() {
       const result = await classesCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
-   
+
     // get approved classes
     app.get("/addClasses/approved", async (req, res) => {
       const query = { status: "approved" };
       const result = await classesCollection.find(query).toArray();
       res.send(result);
     });
-
-
-
 
     // select class related apis
     app.post("/selectClasses", async (req, res) => {
@@ -176,13 +172,13 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/selectClasses",  async (req, res) => {
+    app.get("/selectClasses", async (req, res) => {
       const email = req.query.email;
       const query = { email: email };
       const result = await selectClassesCollection.find(query).toArray();
       res.send(result);
     });
-    
+
     app.delete("/selectClasses/:id", async (req, res) => {
       const id = req.params.id;
       // console.log(id);
@@ -192,21 +188,29 @@ async function run() {
     });
 
     // payment related apis
-    app.post('/create-payment-intent', async(req, res) =>{
+    // payment-intent
+    app.post("/create-payment-intent", async (req, res) => {
       const { price } = req.body;
-      const amount =  price * 100;
-      console.log(price, amount)
+      const amount = price * 100;
+      console.log(price, amount);
       const paymentIntent = await stripe.paymentIntents.create({
         amount: amount,
-        currency: 'usd',
-        payment_method_types: ['card']
+        currency: "usd",
+        payment_method_types: ["card"],
       });
-  
+
       res.send({
-        clientSecret: paymentIntent.client_secret
-      })
+        clientSecret: paymentIntent.client_secret,
+      });
+    });
+    app.post('/payments', async(req, res)=>{
+      const payment = req.body;
+      const result = await paymentCollection.insertOne(payment);
+      res.send(result)
 
     })
+
+
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
