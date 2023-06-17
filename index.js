@@ -27,12 +27,12 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
-    );
+    // await client.db("admin").command({ ping: 1 });
+    // console.log(
+    //   "Pinged your deployment. You successfully connected to MongoDB!"
+    // );
     // collections
     const usersCollection = client.db("TuneCamp").collection("users");
     const classesCollection = client.db("TuneCamp").collection("classes");
@@ -130,6 +130,12 @@ async function run() {
       const result = await classesCollection.find().toArray();
       res.send(result);
     });
+    app.get("/addClasses/myClass", async (req, res) => {
+      const email = req.query.email;
+      const query = { email: email };
+      const result = await classesCollection.find(query).toArray();
+      res.send(result);
+    });
 
     // classes approved operations
     app.patch("/addClasses/approved/:id", async (req, res) => {
@@ -163,6 +169,18 @@ async function run() {
       const result = await classesCollection.find(query).toArray();
       res.send(result);
     });
+
+    // feedback for myClass
+    app.put('/addClasses/feedback', async(req, res) =>{
+      const updateClasses = req.body;
+      const toyInfo ={
+        $set:{
+               feedback: updateClasses.feedback
+        }
+      }
+      const result = await toysCollection.updateOne(filter, toyInfo, options)
+      res.send(result)
+    })
 
     // select class related apis
     app.post("/selectClasses", async (req, res) => {
@@ -211,6 +229,10 @@ async function run() {
     })
     app.get('/payments', async(req, res)=>{
       const result = await paymentCollection.find().toArray();
+      res.send(result);
+    })
+    app.get('/payments/6Classes', async(req, res)=>{
+      const result = await paymentCollection.find().limit(6).toArray();
       res.send(result);
     })
 
